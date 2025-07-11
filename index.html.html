@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squid Game X SWIFT TV</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d0d0d; /* Very dark background */
+            color: #e2e8f0; /* Light text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            padding: 1rem;
+            box-sizing: border-box; /* Ensure padding doesn't cause overflow */
+        }
+
+        /* Custom styles for Squid Game theme */
+        .game-container {
+            background-color: #1a1a1a; /* Darker, industrial feel */
+            border-radius: 0.75rem; /* Sharper corners for a starker look */
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            max-width: 95%; /* Allow it to be slightly wider */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 3px solid #333; /* Subtle dark border */
+        }
+
+        .header {
+            background-color: #b30000; /* Deep red, more impactful */
+            padding: 1.75rem;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            text-align: center;
+            color: white;
+            font-weight: 800; /* Extra bold */
+            font-size: 2.75rem; /* Even larger title */
+            letter-spacing: 0.1em; /* More spaced out */
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            border-bottom: 3px solid #660000; /* Darker red line */
+        }
+
+        .game-area {
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            flex-grow: 1;
+        }
+
+        .puzzle-card {
+            background-color: #2a2a2a; /* Darker gray, concrete-like */
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* Inner shadow for depth */
+            border: 1px solid #444; /* Subtle border */
+        }
+
+        .input-field {
+            background-color: #1a1a1a;
+            border: 2px solid #555; /* Darker border */
+            color: #e2e8f0;
+            padding: 0.85rem 1.25rem;
+            border-radius: 0.375rem; /* Slightly less rounded */
+            width: 100%;
+            font-size: 1.125rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #b30000; /* Red on focus */
+            box-shadow: 0 0 0 3px rgba(179, 0, 0, 0.5); /* Red glow */
+        }
+
+        .game-button {
+            background-color: #008000; /* Deep green, like tracksuits */
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase; /* All caps */
+            letter-spacing: 0.05em;
+        }
+        .game-button:hover {
+            background-color: #006600; /* Darker green on hover */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        }
+        .game-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .message-box {
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            border: 1px solid;
+        }
+        .message-box.success {
+            background-color: #006600; /* Darker green */
+            color: white;
+            border-color: #008000;
+        }
+        .message-box.error {
+            background-color: #800000; /* Darker red */
+            color: white;
+            border-color: #b30000;
+        }
+        .message-box.info {
+            background-color: #333; /* Dark gray for info */
+            color: #e2e8f0;
+            border-color: #555;
+        }
+
+        .leaderboard-container {
+            background-color: #1a1a1a;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 1px solid #333;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed #444; /* Darker dash */
+            font-size: 1.05rem;
+        }
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+        .leaderboard-item.font-bold {
+            color: #00e600; /* Brighter green for current team */
+        }
+
+        /* Specific puzzle styling */
+        #puzzle1-lights {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .light {
+            width: 50px; /* Larger lights */
+            height: 50px;
+            border-radius: 50%;
+            background-color: #555; /* Default off light */
+            transition: background-color 0.4s ease-in-out;
+            border: 3px solid #888; /* More prominent border */
+        }
+        .light.red { background-color: #b30000; box-shadow: 0 0 15px rgba(179, 0, 0, 0.7); }
+        .light.green { background-color: #008000; box-shadow: 0 0 15px rgba(0, 128, 0, 0.7); }
+
+        #puzzle2-shapes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); /* Responsive grid */
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            justify-items: center;
+        }
+        .shape-piece {
+            width: 90px;
+            height: 90px;
+            background-color: #3a3a3a; /* Darker background for shapes */
+            border-radius: 0.375rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem; /* Larger symbols */
+            font-weight: bold;
+            color: #e2e8f0;
+            border: 2px solid #666;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #puzzle3-bridge {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 400px; /* Constrain width */
+        }
+        .bridge-pane {
+            background-color: #3a3a3a; /* Darker, metallic look */
+            height: 70px; /* Taller panes */
+            border-radius: 0.375rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #e2e8f0;
+            border: 2px solid #666;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .bridge-pane.safe { background-color: #006600; border-color: #008000; }
+        .bridge-pane.break { background-color: #800000; border-color: #b30000; }
+
+        /* Timer and progress bar */
+        .timer-bar {
+            background-color: #2a2a2a;
+            border-radius: 0.5rem;
+            height: 1.75rem; /* Taller bar */
+            overflow: hidden;
+            margin-bottom: 1.75rem;
+            border: 1px solid #444;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .timer-progress {
+            height: 100%;
+            background-color: #b30000; /* Red progress */
+            width: 100%; /* Initial width */
+            transition: width 1s linear;
+            border-radius: 50%;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #008000; /* Green progress */
+            width: 0%; /* Initial width */
+            transition: width 0.5s ease-out;
+            border-radius: 0.5rem;
+        }
+
+        /* Modal for messages */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); /* Darker overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #1a1a1a;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            max-width: 550px;
+            width: 90%;
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 3px solid #b30000; /* Red border for modals */
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pulse {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); } /* More pronounced shake */
+            20%, 40%, 60%, 80% { transform: translateX(8px); }
+        }
+        .shake {
+            animation: shake 0.6s ease-in-out;
+        }
+
+        /* Loading Overlay Styles */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #b30000; /* Squid Game red */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <p class="mt-4 text-xl">Initializing Game...</p>
+    </div>
+
+    <div id="game-wrapper" class="game-container w-full lg:w-3/4 xl:w-2/3 2xl:w-1/2 mx-auto">
+        <div class="header">Squid Game X SWIFT TV</div>
+
+        <!-- Team Registration Screen -->
+        <div id="team-registration-screen" class="game-area flex flex-col items-center justify-center h-full">
+            <h2 class="text-3xl font-bold mb-6 text-center">Welcome, Player!</h2>
+            <p class="text-lg mb-4 text-center">Enter your team name to begin your challenge.</p>
+            <input type="text" id="team-name-input" placeholder="Your Team Name" class="input-field mb-6 max-w-sm">
+            <button id="start-game-button" class="game-button">Start Game</button>
+            <div id="registration-message" class="message-box info hidden w-full max-w-sm mt-4"></div>
+        </div>
+
+        <!-- Main Game Screen -->
+        <div id="main-game-screen" class="game-area hidden">
+            <div class="flex justify-between items-center mb-4">
+                <div class="text-xl font-bold">Team: <span id="current-team-display"></span></div>
+                <div class="text-xl font-bold">Time Left: <span id="time-left-display">40:00</span></div>
+            </div>
+            <div class="timer-bar">
+                <div id="timer-progress" class="timer-progress"></div>
+            </div>
+            <div class="progress-bar">
+                <div id="puzzle-progress" class="progress-fill"></div>
+            </div>
+
+            <div id="puzzle-display" class="puzzle-card flex flex-col items-center">
+                <!-- Puzzle content will be injected here -->
+                <h3 id="puzzle-title" class="text-2xl font-bold mb-4 text-center"></h3>
+                <p id="puzzle-description" class="text-lg mb-6 text-center"></p>
+                <div id="puzzle-specific-content" class="w-full flex justify-center flex-wrap gap-4">
+                    <!-- Specific puzzle elements -->
+                </div>
+                <input type="text" id="puzzle-answer-input" placeholder="Enter your answer" class="input-field mt-6 mb-4 max-w-md">
+                <button id="submit-answer-button" class="game-button">Submit Answer</button>
+                <div id="puzzle-message" class="message-box hidden w-full max-w-md mt-4"></div>
+            </div>
+
+            <div id="leaderboard" class="leaderboard-container">
+                <h3 class="text-2xl font-bold mb-4 text-center">Leaderboard</h3>
+                <div id="leaderboard-list">
+                    <!-- Leaderboard items will be injected here -->
+                    <p class="text-center text-gray-400">Loading leaderboard...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="game-area hidden flex-col items-center justify-center h-full">
+            <h2 class="text-4xl font-bold mb-6 text-center text-red-500 animate-pulse">GAME OVER!</h2>
+            <p id="game-over-message" class="text-xl mb-8 text-center"></p>
+            <button id="restart-game-button" class="game-button">Play Again</button>
+        </div>
+
+        <!-- Custom Modal for messages -->
+        <div id="custom-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3 id="modal-title" class="text-2xl font-bold mb-4"></h3>
+                <p id="modal-message" class="text-lg mb-6"></p>
+                <button id="modal-close-button" class="game-button">OK</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase (MANDATORY: Provided by Canvas environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-squid-game-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
+
+        // Initialize Firebase
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let isAuthReady = false;
+        let isLoadingTeam = false; // New loading state variable
+
+        // Game state variables
+        const TOTAL_GAME_TIME_SECONDS = 40 * 60; // 40 minutes
+        let timeLeft = TOTAL_GAME_TIME_SECONDS;
+        let timerInterval;
+        let currentTeamName = '';
+        let currentTeamDocRef = null;
+
+        const puzzles = [
+            {
+                id: 'redLightGreenLight',
+                title: 'Red Light, Green Light: The Sequence',
+                description: 'The doll is watching! A sequence of lights will flash. Identify the pattern and enter the next color in the sequence (RED or GREEN).',
+                solution: 'GREEN', // Example solution, can be dynamic
+                hint: 'Think about the alternating pattern.',
+                render: function() {
+                    const contentDiv = document.getElementById('puzzle-specific-content');
+                    contentDiv.innerHTML = `
+                        <div id="puzzle1-lights" class="flex justify-center gap-4 mb-4">
+                            <div class="light red"></div>
+                            <div class="light green"></div>
+                            <div class="light red"></div>
+                        </div>
+                        <p class="text-center text-lg">What is the next color?</p>
+                    `;
+                    // Simple animation for lights
+                    let lightIndex = 0;
+                    const lightElements = contentDiv.querySelectorAll('.light');
+                    // Clear any existing intervals to prevent multiple animations
+                    if (this.lightInterval) clearInterval(this.lightInterval);
+                    this.lightInterval = setInterval(() => {
+                        lightElements.forEach(light => light.classList.remove('red', 'green'));
+                        if (lightIndex % 2 === 0) {
+                            lightElements[lightIndex % 3].classList.add('red');
+                        } else {
+                            lightElements[lightIndex % 3].classList.add('green');
+                        }
+                        lightIndex++;
+                    }, 1000); // Flash every second
+                },
+                checkAnswer: function(answer) {
+                    return answer.toUpperCase().trim() === this.solution;
+                }
+            },
+            {
+                id: 'dalgonaCandy',
+                title: 'Dalgona Candy: The Missing Piece',
+                description: 'You have a partially carved Dalgona. Identify the complete shape from the fragments. Enter the name of the complete shape (e.g., CIRCLE, STAR, TRIANGLE, UMBRELLA).',
+                solution: 'STAR',
+                hint: 'Look closely at the angles and curves. It\'s a common shape found in the sky.',
+                render: function() {
+                    const contentDiv = document.getElementById('puzzle-specific-content');
+                    contentDiv.innerHTML = `
+                        <div id="puzzle2-shapes" class="grid grid-cols-3 gap-4">
+                            <div class="shape-piece">▲</div>
+                            <div class="shape-piece">★</div>
+                            <div class="shape-piece">●</div>
+                            <div class="shape-piece">⬟</div>
+                            <div class="shape-piece">⛤</div>
+                            <div class="shape-piece">⌂</div>
+                        </div>
+                        <p class="text-center text-lg mt-4">Which of these pieces completes the Star?</p>
+                    `;
+                },
+                checkAnswer: function(answer) {
+                    return answer.toUpperCase().trim() === this.solution;
+                }
+            },
+            {
+                id: 'glassBridge',
+                title: 'Glass Bridge: The Safe Path',
+                description: 'A sequence of numbers represents the safe panes on the glass bridge. Remember the sequence and enter it, separated by commas (e.g., 1,2,1).',
+                solution: '2,1,2,1', // Example: 1=left, 2=right
+                hint: 'The sequence is "Right, Left, Right, Left".',
+                render: function() {
+                    const contentDiv = document.getElementById('puzzle-specific-content');
+                    contentDiv.innerHTML = `
+                        <div id="puzzle3-bridge" class="grid grid-cols-2 gap-4 w-full max-w-md">
+                            <div class="bridge-pane bg-gray-500 text-white">Left (1)</div>
+                            <div class="bridge-pane bg-gray-500 text-white">Right (2)</div>
+                        </div>
+                        <p class="text-center text-lg mt-4">The sequence flashed was: <span class="font-bold text-green-400">Right, Left, Right, Left</span>. Enter the numbers (1 for Left, 2 for Right) separated by commas.</p>
+                    `;
+                },
+                checkAnswer: function(answer) {
+                    return answer.replace(/\s/g, '').trim() === this.solution;
+                }
+            },
+            {
+                id: 'marblesRiddle',
+                title: 'Marbles: The Final Riddle',
+                description: 'Your opponent gave you a riddle. Solve it to find the number of marbles you need to win. "I have cities, but no houses; forests, but no trees; and water, but no fish. What am I?" Enter the answer as a single word.',
+                solution: 'MAP',
+                hint: 'You use me to find your way around.',
+                render: function() {
+                    const contentDiv = document.getElementById('puzzle-specific-content');
+                    contentDiv.innerHTML = `
+                        <p class="text-center text-xl font-semibold mb-4">"I have cities, but no houses; forests, but no trees; and water, but no fish. What am I?"</p>
+                    `;
+                },
+                checkAnswer: function(answer) {
+                    return answer.toUpperCase().trim() === this.solution;
+                }
+            }
+        ];
+
+        let gameData = {
+            currentPuzzleIndex: 0,
+            puzzleStates: puzzles.map(p => ({ id: p.id, solved: false, attempts: 0, solution: '' })),
+            startTime: null,
+            finishTime: null,
+            score: 0,
+            hintsUsed: 0
+        };
+
+        // DOM Elements
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const teamRegistrationScreen = document.getElementById('team-registration-screen');
+        const mainGameScreen = document.getElementById('main-game-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const teamNameInput = document.getElementById('team-name-input');
+        const startGameButton = document.getElementById('start-game-button');
+        const registrationMessage = document.getElementById('registration-message');
+        const currentTeamDisplay = document.getElementById('current-team-display');
+        const timeLeftDisplay = document.getElementById('time-left-display');
+        const timerProgressBar = document.getElementById('timer-progress');
+        const puzzleProgressBar = document.getElementById('puzzle-progress');
+        const puzzleTitle = document.getElementById('puzzle-title');
+        const puzzleDescription = document.getElementById('puzzle-description');
+        const puzzleSpecificContent = document.getElementById('puzzle-specific-content');
+        const puzzleAnswerInput = document.getElementById('puzzle-answer-input');
+        const submitAnswerButton = document.getElementById('submit-answer-button');
+        const puzzleMessage = document.getElementById('puzzle-message');
+        const leaderboardList = document.getElementById('leaderboard-list');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const restartGameButton = document.getElementById('restart-game-button');
+        const customModal = document.getElementById('custom-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalCloseButton = document.getElementById('modal-close-button');
+
+        // Audio setup using Tone.js
+        const synth = new Tone.Synth().toDestination();
+        const playCorrectSound = () => {
+            synth.triggerAttackRelease("C5", "8n"); // A short, higher note
+        };
+        const playIncorrectSound = () => {
+            synth.triggerAttackRelease("C3", "8n"); // A short, lower note
+        };
+        const playGameOverSound = () => {
+            synth.triggerAttackRelease(["C4", "Eb4", "G4"], "2n"); // A chord
+        };
+
+        const showLoading = () => { loadingOverlay.classList.remove('hidden'); };
+        const hideLoading = () => { loadingOverlay.classList.add('hidden'); };
+
+
+        // --- Firebase Initialization and Auth ---
+        const initFirebase = async () => {
+            showLoading(); // Show loading overlay immediately
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Ensure Tone.js is started after user interaction
+                document.documentElement.addEventListener('mousedown', () => {
+                    if (Tone.context.state !== 'running') {
+                        Tone.start();
+                        console.log("Tone.js audio context started.");
+                    }
+                });
+
+                // Attempt initial sign-in with custom token or anonymously
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    // After successful sign-in, update auth state variables
+                    userId = auth.currentUser?.uid || crypto.randomUUID();
+                    isAuthReady = true;
+                    console.log("Firebase Auth Initialized and Ready. User ID:", userId);
+
+                } catch (authError) {
+                    console.error("Error during initial Firebase authentication:", authError);
+                    showMessageModal('Error', 'Failed to authenticate with game server. Please try again.');
+                    // Do not return here, allow the rest of the setup to try and proceed
+                    // but ensure isAuthReady remains false if critical auth fails.
+                    isAuthReady = false; // Mark auth as not ready if initial sign-in fails
+                }
+
+                // Now that initial auth attempt is done (and userId/isAuthReady are set accordingly)
+                // set up the leaderboard listener and hide loading.
+                setupLeaderboardListener();
+
+                // If a team name was entered before auth was ready, load its data
+                if (currentTeamName) {
+                    loadTeamData(currentTeamName);
+                }
+
+                hideLoading(); // Hide loading once initial setup is complete
+
+                // This onAuthStateChanged listener will catch any *subsequent* auth state changes
+                // after the initial load.
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                    } else {
+                        userId = auth.currentUser?.uid || crypto.randomUUID();
+                    }
+                    isAuthReady = true; // Ensure isAuthReady is true for any state change
+                    console.log("onAuthStateChanged triggered. User ID:", userId);
+                    // We don't call hideLoading or setupLeaderboardListener here again
+                    // as they are handled after the initial sign-in.
+                });
+
+            } catch (error) {
+                console.error("Error during Firebase initialization (outside auth block):", error);
+                showMessageModal('Error', 'Failed to initialize game. Please try again later.');
+                hideLoading(); // Hide loading even on critical initialization error
+            }
+        };
+
+        // Helper to wait for Firebase Auth to be ready.
+        // This is primarily for functions that might be called *before* onAuthStateChanged's first fire.
+        const waitForAuthReady = () => {
+            return new Promise((resolve) => {
+                if (isAuthReady && userId) {
+                    resolve();
+                    return;
+                }
+                // If not ready, we rely on the main onAuthStateChanged flow to set isAuthReady and userId.
+                // This interval acts as a fallback/polling mechanism.
+                const checkInterval = setInterval(() => {
+                    if (isAuthReady && userId) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 100); // Check every 100ms
+            });
+        };
+
+        // --- Firestore Operations ---
+        const getTeamDocRef = (teamName) => {
+            // Public data collection for teams
+            return doc(db, `artifacts/${appId}/public/data/squidGameTeams`, teamName);
+        };
+
+        const loadTeamData = async (teamName) => {
+            isLoadingTeam = true;
+            startGameButton.disabled = true;
+            showRegistrationMessage('info', 'Loading team data...');
+
+            try {
+                await waitForAuthReady(); // Ensure auth is ready before proceeding
+
+                currentTeamDocRef = getTeamDocRef(teamName);
+                const docSnap = await getDoc(currentTeamDocRef);
+
+                if (docSnap.exists()) {
+                    gameData = docSnap.data();
+                    console.log("Loaded existing team data:", gameData);
+                    showMessageModal('Welcome Back!', `Continuing game for team "${teamName}".`);
+                } else {
+                    // Initialize new game data for the team
+                    gameData = {
+                        currentPuzzleIndex: 0,
+                        puzzleStates: puzzles.map(p => ({ id: p.id, solved: false, attempts: 0, solution: '' })),
+                        startTime: null,
+                        finishTime: null,
+                        score: 0,
+                        hintsUsed: 0
+                    };
+                    await setDoc(currentTeamDocRef, gameData);
+                    console.log("Created new team data for:", teamName);
+                    showMessageModal('New Game!', `Starting a new game for team "${teamName}". Good luck!`);
+                }
+                currentTeamName = teamName;
+                currentTeamDisplay.textContent = currentTeamName;
+                showMainGameScreen();
+                renderCurrentPuzzle();
+                if (gameData.startTime && !gameData.finishTime) {
+                    const elapsed = (Date.now() - gameData.startTime) / 1000;
+                    timeLeft = TOTAL_GAME_TIME_SECONDS - elapsed;
+                    if (timeLeft <= 0) {
+                        endGame(true); // Time's up
+                    } else {
+                        startTimer();
+                    }
+                } else if (gameData.finishTime) {
+                    endGame(false); // Game already finished
+                } else {
+                    // Game not started yet, timer will start on first puzzle interaction
+                }
+
+            } catch (e) {
+                console.error("Error loading/creating team document:", e);
+                showRegistrationMessage('error', 'Failed to load team data. Please try again.');
+            } finally {
+                isLoadingTeam = false;
+                startGameButton.disabled = false;
+            }
+        };
+
+        const updateTeamData = async () => {
+            if (!currentTeamDocRef) return;
+            try {
+                gameData.lastUpdated = Date.now();
+                await updateDoc(currentTeamDocRef, gameData);
+                console.log("Team data updated.");
+            } catch (e) {
+                console.error("Error updating team document:", e);
+            }
+        };
+
+        const setupLeaderboardListener = () => {
+            // This function is now called directly from initFirebase after auth is confirmed.
+            if (!isAuthReady || !userId) {
+                console.warn("setupLeaderboardListener called before auth is ready. This should not happen if called from initFirebase.");
+                return;
+            }
+            console.log("Setting up leaderboard listener for appId:", appId, "and userId:", userId); // Debugging
+            const q = collection(db, `artifacts/${appId}/public/data/squidGameTeams`);
+            onSnapshot(q, (snapshot) => {
+                const teams = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.startTime) { // Only show teams that have started
+                        teams.push({ id: doc.id, ...data });
+                    }
+                });
+
+                // Sort teams for leaderboard: completed games first (by finish time), then by current puzzle index, then by start time
+                teams.sort((a, b) => {
+                    // Prioritize completed games
+                    if (a.finishTime && !b.finishTime) return -1;
+                    if (!a.finishTime && b.finishTime) return 1;
+
+                    // For completed games, sort by finish time (lower is better)
+                    if (a.finishTime && b.finishTime) {
+                        return a.finishTime - b.finishTime;
+                    }
+
+                    // For active games, sort by current puzzle index (higher is better)
+                    if (a.currentPuzzleIndex !== b.currentPuzzleIndex) {
+                        return b.currentPuzzleIndex - a.currentPuzzleIndex;
+                    }
+
+                    // For active games at the same puzzle, sort by start time (earlier is better)
+                    return a.startTime - b.startTime;
+                });
+
+                renderLeaderboard(teams);
+            }, (error) => {
+                console.error("Error listening to leaderboard:", error);
+                leaderboardList.innerHTML = `<p class="text-center text-red-400">Failed to load leaderboard.</p>`;
+            });
+        };
+
+        const renderLeaderboard = (teams) => {
+            leaderboardList.innerHTML = '';
+            if (teams.length === 0) {
+                leaderboardList.innerHTML = `<p class="text-center text-gray-400">No teams have started yet.</p>`;
+                return;
+            }
+            teams.forEach((team, index) => {
+                let status = '';
+                if (team.finishTime) {
+                    const duration = (team.finishTime - team.startTime) / 1000;
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = Math.floor(duration % 60);
+                    status = `Finished in ${minutes}m ${seconds}s`;
+                } else {
+                    status = `Puzzle ${team.currentPuzzleIndex + 1}/${puzzles.length}`;
+                }
+
+                const item = document.createElement('div');
+                item.className = `leaderboard-item ${team.id === currentTeamName ? 'font-bold text-green-400' : ''}`;
+                item.innerHTML = `
+                    <span>${index + 1}. ${team.id}</span>
+                    <span>${status}</span>
+                `;
+                leaderboardList.appendChild(item);
+            });
+        };
+
+
+        // --- Game Logic ---
+        const showRegistrationMessage = (type, message) => {
+            registrationMessage.classList.remove('hidden', 'success', 'error', 'info');
+            registrationMessage.classList.add(type);
+            registrationMessage.textContent = message;
+            registrationMessage.classList.add('fade-in');
+            setTimeout(() => registrationMessage.classList.remove('fade-in'), 500);
+        };
+
+        const showPuzzleMessage = (type, message) => {
+            puzzleMessage.classList.remove('hidden', 'success', 'error', 'info');
+            puzzleMessage.classList.add(type);
+            puzzleMessage.textContent = message;
+            puzzleMessage.classList.add('fade-in');
+            if (type === 'error') {
+                puzzleMessage.classList.add('shake');
+            }
+            setTimeout(() => {
+                puzzleMessage.classList.remove('fade-in', 'shake');
+                puzzleMessage.classList.add('hidden');
+            }, 2000);
+        };
+
+        const showMessageModal = (title, message, callback = null) => {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            customModal.classList.remove('hidden');
+            modalCloseButton.onclick = () => {
+                customModal.classList.add('hidden');
+                if (callback) callback();
+            };
+        };
+
+        const showMainGameScreen = () => {
+            teamRegistrationScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            mainGameScreen.classList.remove('hidden');
+        };
+
+        const showGameOverScreen = () => {
+            teamRegistrationScreen.classList.add('hidden');
+            mainGameScreen.classList.add('hidden');
+            gameOverScreen.classList.remove('hidden');
+        };
+
+        const formatTime = (seconds) => {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        };
+
+        const startTimer = () => {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timeLeftDisplay.textContent = formatTime(timeLeft);
+                const progressWidth = (timeLeft / TOTAL_GAME_TIME_SECONDS) * 100;
+                timerProgressBar.style.width = `${progressWidth}%`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame(true); // Time's up
+                }
+            }, 1000);
+        };
+
+        const updateProgressBar = () => {
+            const progress = (gameData.currentPuzzleIndex / puzzles.length) * 100;
+            puzzleProgressBar.style.width = `${progress}%`;
+        };
+
+        const renderCurrentPuzzle = () => {
+            if (gameData.currentPuzzleIndex >= puzzles.length) {
+                endGame(false); // All puzzles solved
+                return;
+            }
+
+            const currentPuzzle = puzzles[gameData.currentPuzzleIndex];
+            puzzleTitle.textContent = currentPuzzle.title;
+            puzzleDescription.textContent = currentPuzzle.description;
+            puzzleAnswerInput.value = ''; // Clear input
+            puzzleSpecificContent.innerHTML = ''; // Clear previous puzzle content
+            currentPuzzle.render(); // Render specific puzzle elements
+            updateProgressBar();
+        };
+
+        const checkAnswer = async () => {
+            if (!gameData.startTime) {
+                gameData.startTime = Date.now();
+                startTimer();
+                await updateTeamData();
+            }
+
+            const currentPuzzle = puzzles[gameData.currentPuzzleIndex];
+            const userAnswer = puzzleAnswerInput.value;
+
+            if (currentPuzzle.checkAnswer(userAnswer)) {
+                playCorrectSound(); // Use Tone.js sound
+                showPuzzleMessage('success', 'Correct! Moving to the next challenge.');
+                gameData.puzzleStates[gameData.currentPuzzleIndex].solved = true;
+                gameData.puzzleStates[gameData.currentPuzzleIndex].solution = userAnswer;
+                gameData.currentPuzzleIndex++;
+                await updateTeamData(); // Save progress
+                setTimeout(renderCurrentPuzzle, 2000); // Wait for message to fade
+            } else {
+                playIncorrectSound(); // Use Tone.js sound
+                showPuzzleMessage('error', 'Incorrect answer. Try again!');
+                gameData.puzzleStates[gameData.currentPuzzleIndex].attempts++;
+                await updateTeamData(); // Save attempts
+            }
+        };
+
+        const endGame = async (timeUp) => {
+            clearInterval(timerInterval);
+            playGameOverSound(); // Use Tone.js sound
+            gameData.finishTime = Date.now();
+
+            let message = '';
+            if (timeUp) {
+                message = `Time's up! You couldn't complete the challenge in time. You solved ${gameData.currentPuzzleIndex} out of ${puzzles.length} puzzles.`;
+                gameOverMessage.classList.add('text-red-500');
+            } else {
+                const duration = (gameData.finishTime - gameData.startTime) / 1000;
+                const minutes = Math.floor(duration / 60);
+                const seconds = Math.floor(duration % 60);
+                message = `Congratulations, team "${currentTeamName}"! You successfully escaped in ${minutes} minutes and ${seconds} seconds!`;
+                gameOverMessage.classList.add('text-green-500');
+            }
+            gameOverMessage.textContent = message;
+            await updateTeamData(); // Final save
+            showGameOverScreen();
+        };
+
+        const resetGame = async () => {
+            gameData = {
+                currentPuzzleIndex: 0,
+                puzzleStates: puzzles.map(p => ({ id: p.id, solved: false, attempts: 0, solution: '' })),
+                startTime: null,
+                finishTime: null,
+                score: 0,
+                hintsUsed: 0
+            };
+            timeLeft = TOTAL_GAME_TIME_SECONDS;
+            timeLeftDisplay.textContent = formatTime(timeLeft);
+            timerProgressBar.style.width = '100%';
+            puzzleProgressBar.style.width = '0%';
+            currentTeamName = '';
+            currentTeamDisplay.textContent = '';
+            teamNameInput.value = '';
+            registrationMessage.classList.add('hidden');
+            puzzleMessage.classList.add('hidden');
+            gameOverMessage.classList.remove('text-red-500', 'text-green-500');
+
+            // Clear the team's document in Firestore or reset it
+            if (currentTeamDocRef) {
+                try {
+                    await setDoc(currentTeamDocRef, gameData); // Overwrite with new game data
+                    console.log("Team data reset in Firestore.");
+                } catch (e) {
+                    console.error("Error resetting team data in Firestore:", e);
+                }
+            }
+            clearInterval(timerInterval);
+            teamRegistrationScreen.classList.remove('hidden');
+            mainGameScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+        };
+
+        // --- Event Listeners ---
+        startGameButton.addEventListener('click', () => {
+            const teamName = teamNameInput.value.trim();
+            if (teamName) {
+                if (!isLoadingTeam) { // Prevent multiple clicks while loading
+                    loadTeamData(teamName);
+                }
+            } else {
+                showRegistrationMessage('error', 'Please enter your team name!');
+            }
+        });
+
+        submitAnswerButton.addEventListener('click', checkAnswer);
+        puzzleAnswerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        restartGameButton.addEventListener('click', resetGame);
+
+        // Initialize Firebase on window load
+        window.onload = initFirebase;
+
+    </script>
+</body>
+</html>
